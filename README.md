@@ -9,7 +9,7 @@ hidden layer -> 32 neurons
 output layer -> 10 classes   
 
 Training:   
-MNIST Digits dataset (on 80% random training images)
+MNIST Digits dataset (on 80% random training images)   
 nb_epochs = 200000   
 batch_size = 1024   
 learning_rate = 0.00001   
