@@ -25,10 +25,10 @@ learning_rate = 0.00001
 Result:   
 *97% accuracy* (on 20% random evaluation images from the dataset)   
 
-## User Interface: **Digit Classifier App**
+### User Interface: **Digit Classifier App**
 You can use the graphical user interface to draw your own digits and see the model's classification updating in real time.   
 
-# Launch the app
+## Launch the app
 Verify that you have python and the required libraries. Then, in the folder DigitClassifier_App enter the command   
 ```console
 > python app.py
