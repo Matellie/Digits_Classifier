@@ -43,7 +43,7 @@ To get the best results:
 - Take all the vertical space available when you draw your digit
 - Do **not** draw a bar on the bottom of the 1 (the small thing on which the number 1 "stands")   
    
-I will try to correct these behaviors by training a model with images with a better resolution.   
+I will try to correct these behaviors by training a model with images which have a better resolution.   
 
 ## To Do
 - Train for bigger images -> Dataset 28x28px images + Dataset augmentation
