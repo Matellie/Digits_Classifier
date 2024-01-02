@@ -25,6 +25,15 @@ learning_rate = 0.00001
 Result:   
 *97% accuracy* (on 20% random evaluation images from the dataset)   
 
+## User Interface: **Digit Classifier App**
+You can use the graphical user interface to draw your own digits and see the model's classification updating in real time.   
+
+# Launch the app
+Verify that you have python and the required libraries. Then, in the folder DigitClassifier_App enter the command   
+```console
+> python app.py
+```
+Enjoy the wondeful user experience and have fun drawing digits from 0 to 9 !   
+
 ## To Do
-- User interface to write digits
-- Train for bigger images -> Dataset augmentation
+- Train for bigger images -> Dataset 28x28px images + Dataset augmentation
