@@ -1,4 +1,4 @@
-from .model import LinearRegression, SimpleNeuralNet
+from .model import LinearRegression, SimpleNeuralNet, DoubleLayerNeuralNet
 
 import matplotlib.pyplot as plt
 import torch

@@ -56,7 +56,7 @@ def show_images(inputs, labels, predictions):
                 else:
                     color = 'red'
                 image = np.array(inputs[i*sqrt + j].detach().cpu(), dtype='float')
-                pixels = image.reshape((8, 8))
+                pixels = image.reshape((28, 28))
                 axis[i, j].imshow(pixels, cmap='gray')
                 axis[i, j].set_title(f"L:{labels[i*sqrt + j].item()},P:{predictions[i*sqrt + j]}", fontsize=10, color=color)
                 axis[i, j].axis('off')
@@ -65,13 +65,13 @@ def show_images(inputs, labels, predictions):
 
 def main():
     device = set_cuda_device()
-    batch_size = 1024
+    batch_size = 16384
     nb_workers = 0
-    learning_rate = 0.00001
-    nb_epochs = 1000
+    learning_rate = 0.0001
+    nb_epochs = 100
     update_print = 10
-    update_loss_graph = 1
-    update_best_model = 1
+    update_loss_graph = 2
+    update_best_model = 2
 
     # Load dataset
     dataset_train = datasets.MNISTDigits28x28_train()
@@ -82,10 +82,10 @@ def main():
     
     # Create data loaders
     train_loader = DataLoader(dataset_train, batch_size=batch_size, num_workers=nb_workers, shuffle=True)
-    test_loader = DataLoader(dataset_test, batch_size=64, num_workers=nb_workers, shuffle=True)
+    test_loader = DataLoader(dataset_test, batch_size=batch_size, num_workers=nb_workers, shuffle=True)
 
     # Create model
-    model = models.SimpleNeuralNet(input_size=dataset_train.nb_features, hidden_size=32, nb_classes=dataset_train.nb_classes)
+    model = models.DoubleLayerNeuralNet(input_size=dataset_train.nb_features, hidden_size1=128, hidden_size2=128, nb_classes=dataset_train.nb_classes)
     model = model.to(device)
 
     # Set loss function and optimizer
@@ -146,7 +146,7 @@ def main():
             y_pred_class = y_pred.argmax(dim=1)
             correct_guess = correct_guess + y_pred_class.eq(labels).sum()
 
-            show_images(inputs, labels, y_pred_class)
+            #show_images(inputs, labels, y_pred_class)
 
         # Compute and print accuracy
         accuracy = correct_guess / float(len(test_loader.dataset))
