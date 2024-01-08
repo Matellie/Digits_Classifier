@@ -1,1 +1,1 @@
-from .dataset import MNISTDigits
+from .dataset import MNISTDigits8x8, MNISTDigits28x28_train, MNISTDigits28x28_test
