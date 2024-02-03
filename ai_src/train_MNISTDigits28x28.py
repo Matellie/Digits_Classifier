@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.cuda as cuda
 from torch.utils.data import DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
 
 import models
 import datasets
@@ -88,10 +87,10 @@ def main():
     batch_size = 16384
     nb_workers = 0
     learning_rate = 0.0005
-    nb_epochs = 200000
-    update_print = 10000
-    update_loss_graph = 100
-    update_best_model = 1000
+    nb_epochs = 6000
+    update_print = 200
+    update_loss_graph = 6002
+    update_best_model = 250
 
     # Load dataset
     dataset_train = datasets.MNISTDigits28x28_train()
