@@ -63,11 +63,31 @@ def show_images(inputs, labels, predictions):
     plt.subplots_adjust(hspace=1.2, wspace=1.2)
     plt.show()
 
+def evaluate_model(model, val_loader, device, show_i=False):
+    # Evaluate model
+    with torch.no_grad():
+        correct_guess = torch.tensor(0)
+        for i, (inputs, labels) in enumerate(val_loader):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            y_pred = model(inputs)
+            y_pred_class = y_pred.argmax(dim=1)
+            correct_guess = correct_guess + y_pred_class.eq(labels).sum()
+
+            if show_i:
+                show_images(inputs, labels, y_pred_class)
+
+        # Compute and print accuracy
+        accuracy = correct_guess / float(len(val_loader.sampler))
+        
+        return accuracy, correct_guess
+
 def main():
     device = set_cuda_device()
     batch_size = 1024
     nb_workers = 0
-    learning_rate = 0.00001
+    learning_rate = 0.00005
     nb_epochs = 200000
     update_print = 10000
     update_loss_graph = 100
@@ -98,13 +118,12 @@ def main():
 
     # Set best model and best loss
     best_model = model
-    best_loss = torch.tensor(float('inf'))
+    best_accuracy = 0
 
     # Train model
     loss_history = []
+    time_train, time_epoch = time.time(), time.time()
     plt.ion()
-    time_train = time.time()
-    time_epoch = time.time()
     print(f'{nb_epochs} epochs, print update each {update_print} epochs')
     for epoch in range(nb_epochs):
         loss_epoch = 0
@@ -136,39 +155,28 @@ def main():
             plot_loss_graph(update_loss_graph, loss_history)
 
         if (epoch+1) % update_best_model == 0:
+            # Evaluate model
+            accuracy, correct_guess = evaluate_model(model, val_loader, device)
             # Save best model
-            if loss_epoch < best_loss:
-                print(f"New best model: {loss_epoch:.4f}")
-                best_loss = loss_epoch
+            if accuracy > best_accuracy:
+                print(f"New best model: {accuracy * 100:.1f}% accuracy ({correct_guess}/{len(val_loader.sampler)})")
+                best_accuracy = accuracy
                 best_model = model
     print(f'Training time: {(time.time() - time_train):.1f}s')
     plt.ioff()
 
     # Evaluate best model
-    with torch.no_grad():
-        correct_guess = torch.tensor(0)
-        for i, (inputs, labels) in enumerate(val_loader):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+    accuracy, correct_guess = evaluate_model(best_model, val_loader, device, show_i=True)
+    print(f"Correct guess: {correct_guess}/{len(val_loader.sampler)}")
+    print(f'Accuracy: {accuracy * 100:.2f}%')
 
-            y_pred = best_model(inputs)
-            y_pred_class = y_pred.argmax(dim=1)
-            correct_guess = correct_guess + y_pred_class.eq(labels).sum()
-
-            show_images(inputs, labels, y_pred_class)
-
-        # Compute and print accuracy
-        accuracy = correct_guess / float(len(val_indices))
-        print(f"Correct guess: {correct_guess}/{len(val_indices)}")
-        print(f'Accuracy: {accuracy.item() * 100:.2f}%')
-
-        # Save model and loss graph
-        model_id = f'{dataset.name}_{best_model.name}_{accuracy.item() * 100:.0f}'
-        model_name =        'model_' +  model_id + '.pt'
-        loss_graph_name =   'loss_' +   model_id + '.png'
-        save_path = '.'
-        models.save_model(best_model, save_path=save_path, model_name=model_name)
-        models.save_loss_graph(loss_history, save_path=save_path, graph_name=loss_graph_name)
+    # Save model and loss graph
+    model_id = f'{dataset.name}_{best_model.name}_{accuracy * 100:.0f}'
+    model_name =        'model_' +  model_id + '.pt'
+    loss_graph_name =   'loss_' +   model_id + '.png'
+    save_path = '.'
+    models.save_model(best_model, save_path=save_path, model_name=model_name)
+    models.save_loss_graph(loss_history, save_path=save_path, graph_name=loss_graph_name)
 
 if __name__ == '__main__':
     main()
