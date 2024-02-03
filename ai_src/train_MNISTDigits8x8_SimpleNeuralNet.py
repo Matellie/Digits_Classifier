@@ -19,7 +19,7 @@ def set_cuda_device():
     else:
         print('Using CPU')
         DEVICE = torch.device('cpu')
-    return DEVICE
+    return torch.device('cpu')
 
 def split_dataset(dataset, val_split, seed=42):
     indices = list(range(len(dataset)))
@@ -74,7 +74,7 @@ def main():
     update_best_model = 1000
 
     # Load dataset
-    dataset = datasets.MNISTDigits()
+    dataset = datasets.MNISTDigits8x8()
     
     # Create data indices for training and validation splits
     train_indices, val_indices = split_dataset(dataset, val_split=0.2, seed=random.randrange(1, 999))
@@ -107,6 +107,9 @@ def main():
     time_epoch = time.time()
     print(f'{nb_epochs} epochs, print update each {update_print} epochs')
     for epoch in range(nb_epochs):
+        loss_epoch = 0
+
+        # Training loop
         for i, (inputs, labels) in enumerate(train_loader):
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -118,23 +121,25 @@ def main():
             optimizer.step()
             optimizer.zero_grad()
 
+            loss_epoch += l.item()
+
+        # Reporting
         if (epoch+1) % update_print == 0:
             # Print epoch training time and some infos
-            print(f'Epoch {epoch+1}: loss = {l:.4f}, time = {(time.time() - time_epoch):.1f}s')
+            print(f'Epoch {epoch+1}: loss = {loss_epoch:.4f}, time = {(time.time() - time_epoch):.1f}s')
             time_epoch = time.time()
 
         if (epoch+1) % update_loss_graph == 0:
             #Save loss history
-            loss_history.append(l.detach().cpu().numpy())
-
+            loss_history.append(loss_epoch)
             # Plot loss history graph
             plot_loss_graph(update_loss_graph, loss_history)
 
         if (epoch+1) % update_best_model == 0:
             # Save best model
-            if l.item() < best_loss.item():
-                print(f"New best model: {l.item():.4f}")
-                best_loss = l
+            if loss_epoch < best_loss:
+                print(f"New best model: {loss_epoch:.4f}")
+                best_loss = loss_epoch
                 best_model = model
     print(f'Training time: {(time.time() - time_train):.1f}s')
     plt.ioff()
