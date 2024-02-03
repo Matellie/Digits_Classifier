@@ -19,7 +19,7 @@ def set_cuda_device():
     else:
         print('Using CPU')
         DEVICE = torch.device('cpu')
-    return torch.device('cpu')
+    return DEVICE
 
 def split_dataset(dataset, val_split, seed=42):
     indices = list(range(len(dataset)))
