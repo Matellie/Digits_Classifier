@@ -5,6 +5,27 @@ from PIL import ImageGrab, Image, ImageTk
 import torch
 import numpy as np
 
+class ClassificationModels:
+    def __init__(self):
+        # Load models
+        model_8x8 = SimpleNeuralNet(input_size=64, hidden_size=32, nb_classes=10)
+        self.model_8x8 = load_model(model=model_8x8, model_path='model_ckpt', model_name='model_MNISTDigits8x8_SimpleNeuralNet_96.pt')
+
+        model_28x28 = DoubleLayerNeuralNet(input_size=784, hidden_size1=128, hidden_size2=128, nb_classes=10)
+        self.model_28x28 = load_model(model=model_28x28, model_path='model_ckpt', model_name='model_MNISTDigits28x28_DoubleLayerNeuralNet_97.pt')
+
+        # Set default model
+        self.model_pred = self.model_8x8
+        self.img_size = 8
+
+    def switch_model(self):
+        if self.model_pred == self.model_8x8:
+            self.model_pred = self.model_28x28
+            self.img_size = 28
+        else:
+            self.model_pred = self.model_8x8
+            self.img_size = 8
+
 def main():
 
     def draw(event):
@@ -16,11 +37,11 @@ def main():
         canvas.old_coords = x, y
 
         # Get image and display it
-        image_8x8px, image_display = get_images()
+        image_process, image_display = get_images()
         display_image(image_display)
 
         # Predict digit and display it
-        prediction = predict(image_8x8px)
+        prediction = predict(image_process)
         display_prediction(prediction)
 
     def reset_coords(event):
@@ -33,10 +54,10 @@ def main():
         y2 = y1 + canvas.winfo_height()
         image = ImageGrab.grab().crop((x1+5, y1+5, x2-5, y2-5))
 
-        image_8x8px = image.resize((8, 8))
-        image_display = image_8x8px.resize((150, 150), Image.NEAREST)
+        image_process = image.resize((models.img_size, models.img_size))
+        image_display = image_process.resize((150, 150), Image.NEAREST)
 
-        return image_8x8px, image_display
+        return image_process, image_display
     
     def display_image(image):
         image = ImageTk.PhotoImage(image)
@@ -50,13 +71,20 @@ def main():
             image = image.flatten()
             image = torch.from_numpy(image)
 
-            pred = model(image)
+            pred = models.model_pred(image)
             pred = torch.argmax(pred).item()
         
         return pred
     
     def display_prediction(pred):
         pred_area.configure(text=str(pred))
+
+    def change_model():
+        models.switch_model()
+        model_used.configure(text="Model used : " + str(models.img_size) + "x" + str(models.img_size))
+
+    # Load models
+    models = ClassificationModels()
 
     # Main window
     app = Tk()
@@ -70,7 +98,7 @@ def main():
 
     # Left frame (draw area and clear button)
     left_frame = Frame(app, bg='white')
-    left_frame.pack(side=LEFT)
+    left_frame.pack(fill=BOTH, side=LEFT)
 
     draw_area_title = Label(left_frame, text="Draw a digit below", font=("Arial", 15), bg='white')
     draw_area_title.pack()
@@ -80,12 +108,12 @@ def main():
     canvas.pack()
     canvas.old_coords = None
 
-    clear_button = Button(left_frame, text="Clear", font=("Arial", 15), width=20, height=30, command=lambda: canvas.delete("all"))
-    clear_button.pack()
+    clear_button = Button(left_frame, text="Clear", font=("Arial", 15), width=20, command=lambda: canvas.delete("all"))
+    clear_button.pack(side=BOTTOM)
 
     # Right frame (image 8x8px and model prediction)
     right_frame = Frame(app, bg='white')
-    right_frame.pack()
+    right_frame.pack(fill=BOTH, expand=True)
 
     img_display_title = Label(right_frame, text="Image used by the model", font=("Arial", 15), bg='white')
     img_display_title.pack()
@@ -101,8 +129,11 @@ def main():
     pred_area = Label(right_frame, text="None", font=("Arial", 20), bg='white')
     pred_area.pack()
 
-    model = SimpleNeuralNet(input_size=64, hidden_size=32, nb_classes=10)
-    model = load_model(model=model, model_path='model_ckpt', model_name='model_MNISTDigits_SimpleNeuralNet_97.pt')
+    change_model_button = Button(right_frame, text="Change model", font=("Arial", 15), command=change_model)
+    change_model_button.pack(side=BOTTOM)
+
+    model_used = Label(right_frame, text="Model used : 8x8", font=("Arial", 15), bg='white')
+    model_used.pack(side=BOTTOM)
 
     # Bindings
     app.bind('<B1-Motion>', draw)

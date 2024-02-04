@@ -1,4 +1,4 @@
-from .model import LinearRegression, SimpleNeuralNet
+from .model import LinearRegression, SimpleNeuralNet, DoubleLayerNeuralNet
 
 from torch import save, load
 import os
